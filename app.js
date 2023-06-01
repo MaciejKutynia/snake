@@ -47,20 +47,16 @@ const moveRight = () => {
 const moveSnake = () => {
   switch (direction) {
     case "down":
-      // vx = vx;
       vy += speed;
       break;
     case "up":
-      // vx = vx;
       vy -= speed;
       break;
     case "right":
       vx += speed;
-      // vy = vy;
       break;
     case "left":
       vx -= speed;
-      // vy = vy;
       break;
   }
 };
@@ -76,12 +72,6 @@ const updateSnake = (context) => {
   );
 };
 
-const drawSnake = (context) => {
-  context.fillStyle = "black";
-  context.fillRect(startingSnakePosition.x, startingSnakePosition.y, 10, 10);
-  updateSnake(context);
-};
-
 window.addEventListener("keyup", function (e) {
   if (keyCodes.up.includes(e.key)) moveUp();
   if (keyCodes.down.includes(e.key)) moveDown();
@@ -92,6 +82,6 @@ window.addEventListener("keyup", function (e) {
 
 (function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawSnake(ctx, vx, vy);
+  updateSnake(ctx);
   requestAnimationFrame(animate);
 })();
