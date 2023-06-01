@@ -1,0 +1,24 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  width: clamp(25%, 21rem, 100%);
+  justify-content: space-around;
+  margin-bottom: 1.5rem;
+}
+
+canvas {
+  border: 2px solid;
+}
