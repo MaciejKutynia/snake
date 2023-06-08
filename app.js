@@ -1,109 +1,133 @@
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
+const gameOverLayer = document.querySelector(".game-over-layer");
+const tryAgainButton = gameOverLayer.querySelector("button");
+const scoreElement = document.querySelector("#score");
 
 const randomNumber = (min, max) => Math.random() * (max - min) + min;
 
-canvas.width = 300;
-canvas.height = 600;
+canvas.width = 400;
+canvas.height = 400;
 
-let lastKey = "",
-  isGameOver = false;
+let speed = 7,
+  tileCount = 20,
+  head = { x: 10, y: 10 },
+  tileSize = canvas.width / tileCount - 2,
+  xVelocity = 0,
+  yVelocity = 0,
+  score = 0,
+  food = { x: 5, y: 5 };
+let counter = 0;
 
-const keyCodes = {
-  up: ["ArrowUp", "w"],
-  down: ["ArrowDown", "s"],
-  left: ["ArrowLeft", "a"],
-  right: ["ArrowRight", "d"],
+const snake = [];
+let snakeLength = 1;
+
+const draw = () => {
+  changeSnakePosition();
+  const isGameOver = detectColision();
+  if (isGameOver) {
+    return;
+  }
+  clearScreen();
+  updateScore();
+  checkEating();
+  drawFood();
+  drawSnake();
+  setTimeout(draw, 1000 / speed);
 };
 
-class Snake {
-  constructor(context, canvas, isGameOver) {
-    this.context = context;
-    this.canvas = canvas;
-    this.width = canvas.width;
-    this.height = canvas.height;
-    this.direction = "";
-    this.dimension = 10;
-    this.startingSnakePosition = {
-      x: randomNumber(0, canvas.width - this.dimension),
-      y: randomNumber(0, canvas.height - this.dimension),
-    };
-    this.vx = 0;
-    this.vy = 0;
-    this.speed = 2;
-    this.isGameOver = isGameOver;
+const drawSnake = () => {
+  ctx.fillStyle = "black";
+  ctx.fillRect(head.x * tileCount, head.y * tileCount, tileSize, tileSize);
+
+  snake.forEach((part) => {
+    ctx.fillRect(part.x * tileCount, part.y * tileCount, tileSize, tileSize);
+  });
+
+  snake.push({ x: head.x, y: head.y });
+  if (snake.length > snakeLength) {
+    snake.shift();
   }
-  move() {
-    switch (this.direction) {
-      case "up":
-        return { vx: this.vx, vy: (this.vy -= this.speed) };
-      case "down":
-        return { vx: this.vx, vy: (this.vy += this.speed) };
-      case "left":
-        return { vx: (this.vx -= this.speed), vy: this.vy };
-      case "right":
-        return { vx: (this.vx += this.speed), vy: this.vy };
-      default:
-        return { vx: this.vx, vy: this.vy };
-    }
-  }
-  draw() {
-    const { vx, vy } = this.move();
-    this.detectCollision(vx, vy);
-    this.context.fillStyle = "black";
-    this.context.fillRect(
-      this.startingSnakePosition.x + vx,
-      this.startingSnakePosition.y + vy,
-      this.dimension,
-      this.dimension,
-    );
-  }
-  detectCollision(vx, vy) {
-    const { x, y } = this.startingSnakePosition;
-    if (
-      vx + x >= this.width - this.dimension ||
-      vx + x <= 0 ||
-      vy + y >= this.height - this.dimension ||
-      vy + y <= 0
-    ) {
-      this.direction = "";
-      this.speed = 0;
-      this.isGameOver = true;
-    }
-  }
-  moveUp = () => {
-    if (keyCodes.down.includes(lastKey)) return;
-    this.direction = "up";
-  };
+};
 
-  moveDown = () => {
-    if (keyCodes.up.includes(lastKey)) return;
-    this.direction = "down";
-  };
+const changeSnakePosition = () => {
+  head.x += xVelocity;
+  head.y += yVelocity;
+};
 
-  moveLeft = () => {
-    if (keyCodes.right.includes(lastKey)) return;
-    this.direction = "left";
-  };
-
-  moveRight = () => {
-    if (keyCodes.left.includes(lastKey)) return;
-    this.direction = "right";
-  };
-}
-
-const snake = new Snake(ctx, canvas);
-
-window.addEventListener("keyup", function (e) {
-  if (keyCodes.up.includes(e.key)) snake.moveUp();
-  if (keyCodes.down.includes(e.key)) snake.moveDown();
-  if (keyCodes.left.includes(e.key)) snake.moveLeft();
-  if (keyCodes.right.includes(e.key)) snake.moveRight();
-  lastKey = e.key;
-});
-
-(function animate() {
+const clearScreen = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  snake.draw();
-  requestAnimationFrame(animate);
-})();
+};
+
+const checkEating = () => {
+  if (food.x === head.x && food.y === head.y) {
+    food.x = Math.floor(Math.random() * tileCount);
+    food.y = Math.floor(Math.random() * tileCount);
+    snakeLength++;
+    score++;
+  }
+};
+
+const updateScore = () => {
+  scoreElement.innerText = `SCORE: 0000${score}`.slice(-4);
+  if (score && score % 10 === 0) {
+    counter++;
+    if (counter === 1) {
+      speed += 1;
+    }
+    return;
+  }
+  counter = 0;
+};
+
+const detectColision = () => {
+  if (yVelocity === 0 && xVelocity === 0) {
+    return false;
+  }
+  let isCollision = false;
+  if (head.x >= tileCount || head.x < 0 || head.y < 0 || head.y >= tileCount) {
+    isCollision = true;
+  }
+
+  snake.every((part) => {
+    if (part.x === head.x && part.y === head.y) {
+      isCollision = true;
+      return true;
+    }
+    return false;
+  });
+
+  return isCollision;
+};
+
+const drawFood = () => {
+  ctx.fillStyle = "green";
+  ctx.fillRect(food.x * tileCount, food.y * tileCount, tileSize, tileSize);
+};
+
+const keyDown = (e) => {
+  if (e.keyCode === 38) {
+    if (yVelocity === 1) return;
+    yVelocity = -1;
+    xVelocity = 0;
+  }
+  if (e.keyCode === 40) {
+    if (yVelocity === -1) return;
+    yVelocity = +1;
+    xVelocity = 0;
+  }
+  if (e.keyCode === 37) {
+    if (xVelocity === 1) return;
+    yVelocity = 0;
+    xVelocity = -1;
+  }
+  if (e.keyCode === 39) {
+    if (xVelocity === -1) return;
+    yVelocity = 0;
+    xVelocity = +1;
+  }
+};
+
+document.addEventListener("keydown", keyDown);
+
+draw();
