@@ -9,9 +9,8 @@ const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 const gameOverLayer = document.querySelector(".game-over-layer");
 const tryAgainButton = gameOverLayer.querySelector("button");
-const scoreContainer = document.querySelector("#score");
-canvas.width = 400;
-canvas.height = 400;
+const scoreContainers = document.querySelectorAll(".score");
+const timerContainer = document.getElementById("time");
 const tileCount = 20, tileSize = canvas.width / tileCount - 2, snake = [];
 const keyCodes = {
     up: ["ArrowUp", "w"],
@@ -25,7 +24,7 @@ let speed = 7, vx = 0, vy = 0, snakeLength = 1, gameOver = false, score = 0, hea
 }, food = {
     x: randomNumber(0, tileCount),
     y: randomNumber(0, tileCount),
-};
+}, timer = { seconds: 0, minutes: 0 };
 //Snake
 const drawSnake = () => {
     ctx.fillStyle = "#727272";
@@ -83,7 +82,7 @@ const startGame = () => {
     setTimeout(startGame, 1000 / speed);
 };
 const updateScore = () => {
-    scoreContainer.innerText = `0000${score}`.slice(-4);
+    scoreContainers.forEach((scoreContainer) => (scoreContainer.innerText = `0000${score}`.slice(-4)));
     if (score && score % 10 === 0) {
         speed += 1;
     }
@@ -107,7 +106,10 @@ const restartGame = () => {
     speed = 7;
     vx = 0;
     vy = 0;
+    timer.minutes = 0;
+    timer.seconds = 0;
     updateScore();
+    updateTimer();
     getRandomCoordinates(head);
     getRandomCoordinates(food);
     clearScreen();
@@ -115,6 +117,28 @@ const restartGame = () => {
     drawFood();
     handleGameOverScreen(gameOver);
     startGame();
+    startTimer();
+};
+const updateTimer = () => {
+    const minutes = `00${timer.minutes}`.slice(-2);
+    const seconds = `00${timer.seconds}`.slice(-2);
+    timerContainer.innerText = `${minutes}:${seconds}`;
+};
+const startTimer = () => {
+    if (gameOver) {
+        return;
+    }
+    if (vx || vy) {
+        if (timer.seconds && timer.seconds % 60 === 0) {
+            timer.seconds = 0;
+            timer.minutes++;
+        }
+        else {
+            timer.seconds++;
+        }
+        updateTimer();
+    }
+    setTimeout(startTimer, 1000);
 };
 window.addEventListener("keyup", function (e) {
     if (keyCodes.up.includes(e.key)) {
@@ -143,3 +167,4 @@ window.addEventListener("keyup", function (e) {
     }
 });
 startGame();
+startTimer();
