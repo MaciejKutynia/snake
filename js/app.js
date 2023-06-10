@@ -1,8 +1,8 @@
 "use strict";
 const randomNumber = (min, max) => Math.floor(Math.random() * (max - min) + min);
-const getRandomCoordinates = (element) => {
-    element.x = randomNumber(0, tileCount);
-    element.y = randomNumber(0, tileCount);
+const getRandomCoordinates = (el) => {
+    el.x = randomNumber(0, tileCount);
+    el.y = randomNumber(0, tileCount);
 };
 const drawTile = (ctx, x, y, size) => ctx.fillRect(x, y, size, size);
 const canvas = document.querySelector("canvas");
@@ -11,6 +11,8 @@ const gameOverLayer = document.querySelector(".game-over-layer");
 const tryAgainButton = gameOverLayer.querySelector("button");
 const scoreContainers = document.querySelectorAll(".score");
 const timerContainer = document.getElementById("time");
+canvas.width = 400;
+canvas.height = 400;
 const tileCount = 20, tileSize = canvas.width / tileCount - 2, snake = [];
 const keyCodes = {
     up: ["ArrowUp", "w"],
@@ -112,10 +114,10 @@ const restartGame = () => {
     updateTimer();
     getRandomCoordinates(head);
     getRandomCoordinates(food);
+    handleGameOverScreen(gameOver);
     clearScreen();
     drawSnake();
     drawFood();
-    handleGameOverScreen(gameOver);
     startGame();
     startTimer();
 };
@@ -140,31 +142,42 @@ const startTimer = () => {
     }
     setTimeout(startTimer, 1000);
 };
+const setDirection = (direction) => {
+    switch (direction) {
+        case "up":
+            if (vy === 1)
+                return;
+            vy = -1;
+            vx = 0;
+            break;
+        case "down":
+            if (vy === -1)
+                return;
+            vy = 1;
+            vx = 0;
+            break;
+        case "left":
+            if (vx === 1)
+                return;
+            vy = 0;
+            vx = -1;
+            break;
+        case "right":
+            if (vx === -1)
+                return;
+            vy = 0;
+            vx = 1;
+    }
+};
 window.addEventListener("keyup", function (e) {
-    if (keyCodes.up.includes(e.key)) {
-        if (vy === 1)
-            return;
-        vy = -1;
-        vx = 0;
-    }
-    if (keyCodes.down.includes(e.key)) {
-        if (vy === -1)
-            return;
-        vy = 1;
-        vx = 0;
-    }
-    if (keyCodes.left.includes(e.key)) {
-        if (vx === 1)
-            return;
-        vy = 0;
-        vx = -1;
-    }
-    if (keyCodes.right.includes(e.key)) {
-        if (vx === -1)
-            return;
-        vy = 0;
-        vx = 1;
-    }
+    if (keyCodes.up.includes(e.key))
+        setDirection("up");
+    if (keyCodes.down.includes(e.key))
+        setDirection("down");
+    if (keyCodes.left.includes(e.key))
+        setDirection("left");
+    if (keyCodes.right.includes(e.key))
+        setDirection("right");
 });
 startGame();
 startTimer();
